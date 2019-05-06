@@ -20,7 +20,7 @@
      */
 
     function resize() {
-      WindowHeight = $Window.height();
+      WindowHeight = Window.innerHeight;
 
       Functions.iterate.call($Instances, resizeInstance);
     }
@@ -32,7 +32,7 @@
      */
 
     function raf() {
-      ScrollTop = $Window.scrollTop();
+      ScrollTop = Window.scrollY;
 
       if (ScrollTop < 0) {
         ScrollTop = 0;

@@ -159,7 +159,7 @@
      */
 
     function doTrackScroll() {
-      var scrollTop = $Window.scrollTop() + Formstone.windowHeight,
+      var scrollTop = Window.scrollY + Formstone.windowHeight,
         step = (1 / Defaults.scrollStops),
         depth = step,
         key;

@@ -193,7 +193,7 @@
     function onStateChange() {
       setState();
 
-      $Window.trigger(Events.mqChange, [State]);
+      $("window").trigger(Events.mqChange, [State]);
     }
 
     /**
@@ -303,8 +303,8 @@
 
       // Localize References
 
-      $Window = Formstone.$window,
-      Window = $Window[0],
+      Window = Formstone.window,
+      Window = Window,
 
       Functions = Plugin.functions,
 

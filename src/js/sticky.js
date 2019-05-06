@@ -31,7 +31,7 @@
      */
 
     function raf() {
-      ScrollTop = $Window.scrollTop();
+      ScrollTop = Window.scrollY;
 
       if (ScrollTop < 0) {
         ScrollTop = 0;

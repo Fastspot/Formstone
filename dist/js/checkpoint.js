@@ -1,2 +1,320 @@
-/*! formstone v1.4.13 [checkpoint.js] 2019-03-17 | GPL-3.0 License | formstone.it */
-!function(e){"function"==typeof define&&define.amd?define(["jquery","./core"],e):e(jQuery,Formstone)}(function(e,t){"use strict";function a(){v=p.height(),h.iterate.call($,r)}function i(){$=e(l.base),a()}function n(){h.iterate.call($,s)}function c(e){if(e.hasParent){var t=e.$parent.scrollTop();t!==e.parentScroll&&(s(e),e.parentScroll=t)}}function r(e){if(e.initialized){switch(e.parentHeight=e.hasParent?e.$parent.outerHeight(!1):v,e.windowIntersect){case"top":e.windowCheck=0-e.offset;break;case"middle":case"center":e.windowCheck=e.parentHeight/2-e.offset;break;case"bottom":e.windowCheck=e.parentHeight-e.offset}switch(e.elOffset=e.$target.offset(),e.elIntersect){case"top":e.elCheck=e.elOffset.top;break;case"middle":e.elCheck=e.elOffset.top+e.$target.outerHeight()/2;break;case"bottom":e.elCheck=e.elOffset.top+e.$target.outerHeight()}if(e.hasParent){var t=e.$parent.offset();e.elCheck-=t.top}s(e)}}function s(e){e.initialized&&(e.windowCheck+(e.hasParent?e.parentScroll:u)>=e.elCheck?(e.active||e.$el.trigger(d.activate),e.active=!0,e.$el.addClass(f.active)):e.reverse&&(e.active&&e.$el.trigger(d.deactivate),e.active=!1,e.$el.removeClass(f.active)))}var o=t.Plugin("checkpoint",{widget:!0,defaults:{intersect:"bottom-top",offset:0,reverse:!1},classes:["active"],events:{activate:"activate",deactivate:"deactivate"},methods:{_construct:function(t){t.initialized=!1;var a=e(t.$el.data("checkpoint-parent")),i=e(t.$el.data("checkpoint-container")),n=t.$el.data("checkpoint-intersect"),c=t.$el.data("checkpoint-offset");n&&(t.intersect=n),c&&(t.offset=c);var s=t.intersect.split("-");t.windowIntersect=s[0],t.elIntersect=s[1],t.visible=!1,t.$target=i.length?i:t.$el,t.hasParent=a.length>0,t.$parent=a;var o=t.$target.find("img");o.length&&o.on(d.load,t,r),t.$el.addClass(f.base),t.initialized=!0},_postConstruct:function(e){i(),a()},_destruct:function(e){e.$el.removeClass(f.base),i()},_resize:a,_raf:function(){(u=p.scrollTop())<0&&(u=0),u!==g&&(n(),g=u),h.iterate.call($,c)},resize:r}}),l=(o.namespace,o.classes),f=l.raw,d=o.events,h=o.functions,p=(t.window,t.$window),v=0,u=0,g=0,$=[]});
+/*! formstone v1.4.13-1 [checkpoint.js] 2019-04-26 | GPL-3.0 License | formstone.it */
+/* global define */
+
+(function(factory) {
+    if (typeof define === "function" && define.amd) {
+      define([
+        "jquery",
+        "./core",
+      ], factory);
+    } else {
+      factory(jQuery, Formstone);
+    }
+  }(function($, Formstone) {
+
+    "use strict";
+
+    /**
+     * @method private
+     * @name resize
+     * @description Handles window resize
+     */
+
+    function resize() {
+      WindowHeight = Window.innerHeight;
+
+      Functions.iterate.call($Instances, resizeInstance);
+    }
+
+    /**
+     * @method private
+     * @name raf
+     * @description Handles request animation frame
+     */
+
+    function raf() {
+      ScrollTop = Window.scrollY;
+
+      if (ScrollTop < 0) {
+        ScrollTop = 0;
+      }
+
+      if (ScrollTop !== OldScrollTop) {
+        renderRAF();
+
+        OldScrollTop = ScrollTop;
+      }
+
+      Functions.iterate.call($Instances, scrollInstance);
+    }
+
+    /**
+     * @method private
+     * @name cacheInstances
+     * @description Caches active instances
+     */
+
+    function cacheInstances() {
+      $Instances = $(Classes.base);
+
+      resize();
+    }
+
+    /**
+     * @method private
+     * @name construct
+     * @description Builds instance.
+     * @param data [object] "Instance data"
+     */
+
+    function construct(data) {
+      data.initialized = false;
+
+      var $parent    = $(data.$el.data("checkpoint-parent")),
+          $container = $(data.$el.data("checkpoint-container")),
+          intersect  = data.$el.data("checkpoint-intersect"),
+          offset     = data.$el.data("checkpoint-offset");
+
+      if (intersect) {
+        data.intersect = intersect;
+      }
+      if (offset) {
+        data.offset = offset;
+      }
+
+      var intersectParts = data.intersect.split("-");
+
+      data.windowIntersect = intersectParts[0];
+      data.elIntersect = intersectParts[1];
+      data.visible = false;
+
+      data.$target = ($container.length) ? $container : data.$el;
+
+      data.hasParent = ($parent.length > 0);
+      data.$parent   = $parent;
+
+      var $images = data.$target.find("img");
+
+      if ($images.length) {
+        $images.on(Events.load, data, resizeInstance);
+      }
+
+      data.$el.addClass(RawClasses.base);
+
+      data.initialized = true;
+    }
+
+    /**
+     * @method private
+     * @name postConstruct
+     * @description Run post build.
+     * @param data [object] "Instance data"
+     */
+
+    function postConstruct(data) {
+      cacheInstances();
+      resize();
+    }
+
+    /**
+     * @method private
+     * @name destruct
+     * @description Tears down instance.
+     * @param data [object] "Instance data"
+     */
+
+    function destruct(data) {
+      data.$el.removeClass(RawClasses.base);
+
+      cacheInstances();
+    }
+
+    /**
+     * @method private
+     * @name renderRAF
+     * @description Updates DOM based on animation values
+     */
+
+    function renderRAF() {
+      Functions.iterate.call($Instances, checkInstance);
+    }
+
+    function scrollInstance(data) {
+      if (!data.hasParent) {
+        return;
+      }
+
+      var parentScroll = data.$parent.scrollTop();
+
+      if (parentScroll !== data.parentScroll) {
+        checkInstance(data);
+
+        data.parentScroll = parentScroll;
+      }
+    }
+
+    /**
+     * @method
+     * @name resize
+     * @description Updates instance.
+     * @example $(".target").checkpoint("resize");
+     */
+
+    /**
+     * @method private
+     * @name resizeInstance
+     * @description Handle window resize event
+     * @param data [object] "Instance data"
+     */
+
+    function resizeInstance(data) {
+      if (!data.initialized) {
+        return;
+      }
+
+      data.parentHeight = (data.hasParent) ? data.$parent.outerHeight(false) : WindowHeight;
+
+      switch (data.windowIntersect) {
+        case "top":
+          data.windowCheck = 0 - data.offset;
+          break;
+        case "middle":
+        case "center":
+          data.windowCheck = (data.parentHeight / 2) - data.offset;
+          break;
+        case "bottom":
+          data.windowCheck = data.parentHeight - data.offset;
+          break;
+        default:
+          break;
+      }
+
+      data.elOffset = data.$target.offset();
+
+      switch (data.elIntersect) {
+        case "top":
+          data.elCheck = data.elOffset.top;
+          break;
+        case "middle":
+          data.elCheck = data.elOffset.top + (data.$target.outerHeight() / 2);
+          break;
+        case "bottom":
+          data.elCheck = data.elOffset.top + data.$target.outerHeight();
+          break;
+        default:
+          break;
+      }
+
+      if (data.hasParent) {
+        var parentOffset = data.$parent.offset();
+        data.elCheck -= parentOffset.top;
+      }
+
+      checkInstance(data);
+    }
+
+    /**
+     * @method private
+     * @name checkInstance
+     * @description Handle window scroll event
+     * @param data [object] "Instance data"
+     */
+
+    function checkInstance(data) {
+      if (!data.initialized) {
+        return;
+      }
+
+      var check = data.windowCheck + ((data.hasParent) ? data.parentScroll : ScrollTop);
+
+      if (check >= data.elCheck) {
+        if (!data.active) {
+          data.$el.trigger(Events.activate);
+        }
+
+        data.active = true;
+        data.$el.addClass(RawClasses.active);
+      } else {
+        if (data.reverse) {
+          if (data.active) {
+            data.$el.trigger(Events.deactivate);
+          }
+
+          data.active = false;
+          data.$el.removeClass(RawClasses.active);
+        }
+      }
+    }
+
+    /**
+     * @plugin
+     * @name Checkpoint
+     * @description A jQuery plugin for animating visible elements.
+     * @type widget
+     * @main checkpoint.js
+     * @main checkpoint.css
+     * @dependency jQuery
+     * @dependency core.js
+     */
+
+    var Plugin = Formstone.Plugin("checkpoint", {
+        widget: true,
+
+        /**
+         * @options
+         * @param intersect [string] <'bottom-top'> "Position of intersection"
+         * @param offset [int] <0> "Element offset for activating animation"
+         * @param reverse [boolean] <false> "Deactivate animation when scrolling back"
+         */
+
+        defaults: {
+          intersect: 'bottom-top',
+          offset: 0,
+          reverse: false,
+        },
+
+        classes: [
+          "active"
+        ],
+
+        /**
+         * @events
+         * @event activate.checkpoint "Checkpoint activated"
+         * @event deactivate.checkpoint "Checkpoint deactivated"
+         */
+
+        events: {
+          activate: "activate",
+          deactivate: "deactivate"
+        },
+
+        methods: {
+          _construct: construct,
+          _postConstruct: postConstruct,
+          _destruct: destruct,
+          _resize: resize,
+          _raf: raf,
+
+          resize: resizeInstance
+        }
+      }),
+
+      // Localize References
+
+      Namespace = Plugin.namespace,
+      Classes = Plugin.classes,
+      RawClasses = Classes.raw,
+      Events = Plugin.events,
+      Functions = Plugin.functions,
+
+      Window = Formstone.window,
+      $Window = Formstone.$window,
+      $Body,
+      WindowHeight = 0,
+      ScrollTop = 0,
+      OldScrollTop = 0,
+      $Instances = [];
+
+  })
+
+);

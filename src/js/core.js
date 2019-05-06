@@ -19,9 +19,7 @@
 
     // Namespace
 
-    var Win = typeof window !== "undefined" ? window : this,
-      Doc = Win.document,
-      Core = function() {
+    var Core = function() {
         this.Version = '@version';
         this.Plugins = {};
 
@@ -34,28 +32,18 @@
 
         // Globals
 
-        this.window = Win;
-        this.$window = $(Win);
-        this.document = Doc;
-        this.$document = $(Doc);
-        this.$body = null;
+        this.window = window;
+        this.document = document;
 
         this.windowWidth = 0;
         this.windowHeight = 0;
         this.fallbackWidth = 1024;
         this.fallbackHeight = 768;
         this.userAgent = window.navigator.userAgent || window.navigator.vendor || window.opera;
-        this.isFirefox = /Firefox/i.test(this.userAgent);
-        this.isChrome = /Chrome/i.test(this.userAgent);
-        this.isSafari = /Safari/i.test(this.userAgent) && !this.isChrome;
-        this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(this.userAgent);
-        this.isIEMobile = /IEMobile/i.test(this.userAgent);
-        this.isFirefoxMobile = (this.isFirefox && this.isMobile);
         this.transform = null;
         this.transition = null;
 
         this.support = {
-          file: !!(window.File && window.FileList && window.FileReader),
           history: !!(window.history && window.history.pushState && window.history.replaceState),
           matchMedia: !!(window.matchMedia || window.msMatchMedia),
           pointer: !!(window.PointerEvent),
@@ -112,16 +100,19 @@
         lockViewport: function(plugin_namespace) {
           ViewportLocks[plugin_namespace] = true;
 
-          if (!$.isEmptyObject(ViewportLocks) && !ViewportLocked) {
-            if ($ViewportMeta.length) {
-              $ViewportMeta.attr("content", ViewportMetaLocked);
+          if (Object.keys(ViewportLocks).length > 0 && !ViewportLocked) {
+            if (ViewportMeta.length) {
+              ViewportMeta.setAttribute("content", ViewportMetaLocked);
             } else {
-              $ViewportMeta = $("head").append('<meta name="viewport" content="' + ViewportMetaLocked + '">');
+              var ViewportMetaMarkup = document.createElement('meta');
+              ViewportMetaMarkup.setAttribute('name', 'viewport');
+              ViewportMetaMarkup.setAttribute('content', ViewportMetaLocked);
+              ViewportMeta = Document.head.appendChild(ViewportMetaMarkup);
             }
 
-            Formstone.$body.on(Events.gestureChange, Functions.killGesture)
-              .on(Events.gestureStart, Functions.killGesture)
-              .on(Events.gestureEnd, Functions.killGesture);
+            Formstone.body.addEventListener(Events.gestureChange, Functions.killGesture)
+            Formstone.body.addEventListener(Events.gestureStart, Functions.killGesture)
+            Formstone.body.addEventListener(Events.gestureEnd, Functions.killGesture);
 
             ViewportLocked = true;
           }
@@ -139,15 +130,15 @@
           }
 
           if ($.isEmptyObject(ViewportLocks) && ViewportLocked) {
-            if ($ViewportMeta.length) {
+            if (ViewportMeta.length) {
               if (ViewportMetaOriginal) {
-                $ViewportMeta.attr("content", ViewportMetaOriginal);
+                ViewportMeta.setAttribute("content", ViewportMetaOriginal);
               } else {
-                $ViewportMeta.remove();
+                ViewportMeta.remove();
               }
             }
 
-            Formstone.$body.off(Events.gestureChange)
+            Formstone.body.off(Events.gestureChange)
               .off(Events.gestureStart)
               .off(Events.gestureEnd);
 
@@ -321,7 +312,7 @@
       ResizeTimer = null,
       Debounce = 20,
 
-      $ViewportMeta,
+      ViewportMeta,
       ViewportMetaOriginal,
       ViewportMetaLocked,
       ViewportLocks = [],
@@ -807,8 +798,8 @@
     // Window resize
 
     function onWindowResize() {
-      Formstone.windowWidth = Formstone.$window.width();
-      Formstone.windowHeight = Formstone.$window.height();
+      Formstone.windowWidth = Formstone.window.innerWidth;
+      Formstone.windowHeight = Formstone.window.innerHeight;
 
       ResizeTimer = Functions.startTimer(ResizeTimer, Debounce, handleWindowResize);
     }
@@ -821,7 +812,7 @@
       }
     }
 
-    Formstone.$window.on("resize.fs", onWindowResize);
+    Formstone.window.addEventListener("resize.fs", onWindowResize);
     onWindowResize();
 
     // RAF
@@ -849,13 +840,13 @@
     // Document Ready
 
     Formstone.Ready(function() {
-      Formstone.$body = $("body");
+      Formstone.body = Document.body;
 
-      $("html").addClass( (Formstone.support.touch) ? "touchevents" : "no-touchevents" );
+      document.documentElement.classList.add((Formstone.support.touch) ? "touchevents" : "no-touchevents" );
 
       // Viewport
-      $ViewportMeta = $('meta[name="viewport"]');
-      ViewportMetaOriginal = ($ViewportMeta.length) ? $ViewportMeta.attr("content") : false;
+      ViewportMeta = document.querySelector('meta[name="viewport"]');
+      ViewportMetaOriginal = (ViewportMeta.length) ? ViewportMeta.getAttribute("content") : false;
       ViewportMetaLocked = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0';
 
       $Ready.resolve();

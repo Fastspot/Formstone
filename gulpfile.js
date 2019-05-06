@@ -61,7 +61,7 @@ gulp.task('scripts', function() {
   return gulp.src('./src/js/*.js')
     .pipe(include())
     .pipe(jshint())
-    .pipe(uglify())
+    // .pipe(uglify())
     .pipe(header(comment, {
       pkg:  pkg,
       date: date
@@ -113,7 +113,7 @@ gulp.task('demoScripts', function() {
       }
     }))
     .pipe(jshint())
-    .pipe(uglify())
+    // .pipe(uglify())
     .pipe(gulp.dest('./demo/js'));
 });
 
@@ -217,13 +217,31 @@ gulp.task('beautifyStyles', function() {
 
 // Tasks
 
+gulp.task('watch', function() {
+
+  gulp.watch('./src/js/*.js', gulp.series(
+    'scripts', 
+    'demoScripts'
+  ));
+  
+  gulp.watch([
+    './src/less/**/*.less', 
+    '!./src/less/imports/*'
+  ], gulp.series(
+    'styles', 
+    'demoStyles'
+  ));
+
+});
+
 gulp.task('default', gulp.series(
   'clean',
   gulp.parallel('styles', 'scripts'),
   'buildDocs',
   gulp.parallel('demoStyles', 'demoScripts'),
   'demoModernizr',
-  gulp.parallel('zetzer', 'license')
+  gulp.parallel('zetzer', 'license'),
+  'watch'
 ));
 
 // gulp.task('demo', function(callback) {

@@ -22,7 +22,7 @@
 
     function setup() {
       scroll();
-      $Window.on("scroll", scroll);
+      Window.addEventListener("scroll", scroll);
     }
 
     /**
@@ -44,7 +44,7 @@
      */
 
     function scroll() {
-      ScrollTop = $Window.scrollTop() + Formstone.windowHeight;
+      ScrollTop = Window.scrollY + Formstone.windowHeight;
 
       if (ScrollTop < 0) {
         ScrollTop = 0;

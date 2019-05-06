@@ -616,7 +616,7 @@
       };
 
       if (Instance.fixed !== true) {
-        pos.top += $Window.scrollTop();
+        pos.top += Window.scrollY;
       }
 
       return pos;
